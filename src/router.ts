@@ -38,7 +38,10 @@ export const createRouter = (opts?: RouterOptions): Router => {
       const params = matchPath(activePath, route.path);
       if (params) {
         if (route.to != null) {
-          push(route.to);
+          const to = (typeof route.to === 'string')
+            ? route.to
+            : route.to(activePath);
+          push(to);
           return match(routes);
         } else {
           return {params, route};
@@ -101,7 +104,7 @@ export const Route: FunctionalComponent<RouteProps> = (props, children) => {
     } as any;
   }
   if (Build.isDev && props.render && children.length > 0) {
-    console.warn('Route: if `render` is provided, the component should not have any childreen');
+    console.warn('Route: if `render` is provided, the component should not have any children');
   }
   return {
     path: props.path,
@@ -116,7 +119,13 @@ export const href = (href: string, router: Router | undefined = defaultRouter) =
   }
   return {
     href,
-    onClick: (ev: Event) => {
+    onClick: (ev: MouseEvent) => {
+      if (ev.metaKey || ev.ctrlKey) {
+        return;
+      }
+      if (ev.which == 2 || ev.button == 1) {
+        return;
+      }
       ev.preventDefault();
       router.push(href);
     },
